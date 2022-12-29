@@ -5,7 +5,7 @@ import warnings
 import numpy as np
 import torch
 import cv2
-import open_earth_map.oem as oem
+import oem
 from pathlib import Path
 
 warnings.filterwarnings("ignore")
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     PREDS_DIR = "predictions"
     os.makedirs(PREDS_DIR, exist_ok=True)
 
-    fns = [f for f in Path(OEM_DATA_DIR).rglob("*.tif") if "/images/" in str(f)]
+    fns = [f for f in Path(OEM_DATA_DIR).rglob("*.tif") if "images" in str(f)]
     test_fns = [str(f) for f in fns if f.name in np.loadtxt(TEST_LIST, dtype=str)]
 
     print("Total samples   :", len(fns))
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     network = oem.networks.UNet(in_channels=3, n_classes=N_CLASSES)
     network = oem.utils.load_checkpoint(
         network,
-        model_name="model.pth",
+        model_name="model2.pth",
         model_dir="outputs",
     )
 
@@ -49,7 +49,7 @@ if __name__ == "__main__":
             prd = network(img.unsqueeze(0).to(DEVICE)).squeeze(0).cpu()
         prd = oem.utils.make_rgb(np.argmax(prd.numpy(), axis=0))
 
-        fout = os.path.join(PREDS_DIR, fn.split("/")[-1])
+        fout = os.path.join(PREDS_DIR, fn.split("\\")[-1])
         with rasterio.open(fn, "r") as src:
             profile = src.profile
             prd = cv2.resize(
