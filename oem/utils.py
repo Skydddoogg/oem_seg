@@ -105,3 +105,7 @@ def load_checkpoint(model, model_name: str, model_dir: str = "./"):
         )
     )
     return model
+
+def save_loss(loss_list, save_path):
+    with open(save_path, 'w') as f:
+        f.write(f'{str(loss_list)}')

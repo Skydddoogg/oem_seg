@@ -6,10 +6,15 @@ import torch
 import oem
 import torchvision
 from pathlib import Path
+import argparse
 
 warnings.filterwarnings("ignore")
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model')
+    args = parser.parse_args()
+
     start = time.time()
 
     OEM_DATA_DIR = "OpenEarthMap_Mini"
@@ -18,9 +23,9 @@ if __name__ == "__main__":
 
     IMG_SIZE = 512
     N_CLASSES = 9
-    LR = 0.0001
+    LR = 0.001
     BATCH_SIZE = 4
-    NUM_EPOCHS = 1
+    NUM_EPOCHS = 300
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     OUTPUT_DIR = "outputs"
     os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -74,8 +79,10 @@ if __name__ == "__main__":
 
     network = oem.networks.UNet(in_channels=3, n_classes=N_CLASSES)
     optimizer = torch.optim.Adam(network.parameters(), lr=LR)
-    criterion = oem.losses.JaccardLoss()
+    criterion = oem.losses.CEWithLogitsLoss()
 
+    train_loss = []
+    val_loss = []
     max_score = 0
     for epoch in range(NUM_EPOCHS):
         print(f"\nEpoch: {epoch + 1}")
@@ -102,8 +109,14 @@ if __name__ == "__main__":
                 model=network,
                 epoch=epoch,
                 best_score=max_score,
-                model_name="model2.pth",
+                model_name=f"{args.model}.pth",
                 output_dir=OUTPUT_DIR,
             )
 
+        train_loss += [train_logs['Loss']]
+        val_loss += [valid_logs['Loss']]
+
+    oem.utils.save_loss(train_loss, save_path=os.path.join(OUTPUT_DIR, f'{args.model}_train_loss.txt'))
+    oem.utils.save_loss(val_loss, save_path=os.path.join(OUTPUT_DIR, f'{args.model}_val_loss.txt'))
+    print(f'Best IoU on validation set = {max_score:.2f}')
     print("Elapsed time: {:.3f} min".format((time.time() - start) / 60.0))
