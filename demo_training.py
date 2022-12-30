@@ -7,6 +7,7 @@ import oem
 import torchvision
 from pathlib import Path
 import argparse
+import segmentation_models_pytorch as smp
 
 warnings.filterwarnings("ignore")
 
@@ -77,7 +78,13 @@ if __name__ == "__main__":
         shuffle=False,
     )
 
-    network = oem.networks.UNet(in_channels=3, n_classes=N_CLASSES)
+    network = smp.Unet(
+        encoder_name="resnet18",
+        encoder_weights="imagenet",
+        in_channels=3,
+        classes=N_CLASSES,   
+    )
+
     optimizer = torch.optim.Adam(network.parameters(), lr=LR)
     criterion = oem.losses.CEWithLogitsLoss()
 
