@@ -83,6 +83,26 @@ class FocalLoss(nn.Module):
             focal_loss = focal_loss.sum()
         return focal_loss
 
+class Hybrid(nn.Module):
+    def __init__(self, alpha=1, gamma=2):
+        super().__init__()
+
+        self.alpha = alpha
+        self.gamma = gamma
+        self.name = 'Hybrid'
+
+    def forward(self, input, target):
+
+        bce_loss = nn.functional.binary_cross_entropy_with_logits(
+            input, target.float(), reduction="none"
+        )
+
+        pt = torch.exp(-bce_loss)
+        focal_loss = self.alpha * (1 - pt) ** self.gamma * bce_loss
+
+        hybrid_loss = torch.mean(focal_loss, 0).sum()
+
+        return hybrid_loss
 
 # ---------------
 # --- MCCLoss ---
