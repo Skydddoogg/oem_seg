@@ -18,6 +18,9 @@ if __name__ == "__main__":
 
     start = time.time()
 
+    BACKBONE = 'resnet34'
+    PRETRAINED = 'imagenet'
+
     OEM_DATA_DIR = "OpenEarthMap_Mini"
     TRAIN_LIST = os.path.join(OEM_DATA_DIR, "train.txt")
     VAL_LIST = os.path.join(OEM_DATA_DIR, "val.txt")
@@ -78,9 +81,9 @@ if __name__ == "__main__":
         shuffle=False,
     )
 
-    network = smp.Unet(
-        encoder_name="resnet18",
-        encoder_weights="imagenet",
+    network = smp.UnetPlusPlus(
+        encoder_name=BACKBONE,
+        encoder_weights=PRETRAINED,
         in_channels=3,
         classes=N_CLASSES,   
     )
