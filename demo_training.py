@@ -18,18 +18,18 @@ if __name__ == "__main__":
 
     start = time.time()
 
-    BACKBONE = 'resnet34'
+    BACKBONE = 'resnet18'
     PRETRAINED = 'imagenet'
 
     OEM_DATA_DIR = "OpenEarthMap_Mini"
     TRAIN_LIST = os.path.join(OEM_DATA_DIR, "train.txt")
     VAL_LIST = os.path.join(OEM_DATA_DIR, "val.txt")
 
-    IMG_SIZE = 512
+    IMG_SIZE = 224
     N_CLASSES = 9
     LR = 0.001
-    BATCH_SIZE = 4
-    NUM_EPOCHS = 300
+    BATCH_SIZE = 8
+    NUM_EPOCHS = 100
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     OUTPUT_DIR = "outputs"
     os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -44,8 +44,9 @@ if __name__ == "__main__":
 
     train_augm = torchvision.transforms.Compose(
         [
+            oem.transforms.Resize(IMG_SIZE),
             oem.transforms.Rotate(),
-            oem.transforms.Crop(IMG_SIZE),
+            # oem.transforms.Crop(IMG_SIZE),
         ],
     )
 
