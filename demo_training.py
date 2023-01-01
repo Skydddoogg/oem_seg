@@ -90,7 +90,7 @@ if __name__ == "__main__":
     )
 
     optimizer = torch.optim.Adam(network.parameters(), lr=LR)
-    criterion = oem.losses.CEWithLogitsLoss()
+    criterion = oem.losses.JaccardLoss()
 
     train_loss = []
     val_loss = []
