@@ -12,6 +12,7 @@ OpenEarthMap_Mini/
 predictions/
 
 backups/
+*.png
 *.pth
 build/
 develop-eggs/
