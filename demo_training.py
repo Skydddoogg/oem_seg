@@ -34,11 +34,11 @@ if __name__ == "__main__":
     OUTPUT_DIR = "outputs"
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    fns = [f for f in Path(OEM_DATA_DIR).rglob("*.tif") if "images" in str(f)]
-    train_fns = [str(f) for f in fns if f.name in np.loadtxt(TRAIN_LIST, dtype=str)]
-    val_fns = [str(f) for f in fns if f.name in np.loadtxt(VAL_LIST, dtype=str)]
+    img_paths = [f for f in Path(OEM_DATA_DIR).rglob("*.tif") if "images" in str(f)]
+    train_fns = [str(f) for f in img_paths if f.name in np.loadtxt(TRAIN_LIST, dtype=str)]
+    val_fns = [str(f) for f in img_paths if f.name in np.loadtxt(VAL_LIST, dtype=str)]
 
-    print("Total samples      :", len(fns))
+    print("Total samples      :", len(img_paths))
     print("Training samples   :", len(train_fns))
     print("Validation samples :", len(val_fns))
 
