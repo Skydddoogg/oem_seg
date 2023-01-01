@@ -29,7 +29,7 @@ if __name__ == "__main__":
     N_CLASSES = 9
     LR = 0.001
     BATCH_SIZE = 8
-    NUM_EPOCHS = 100
+    NUM_EPOCHS = 200
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     OUTPUT_DIR = "outputs"
     os.makedirs(OUTPUT_DIR, exist_ok=True)
