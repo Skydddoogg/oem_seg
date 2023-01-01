@@ -93,16 +93,20 @@ class Hybrid(nn.Module):
 
     def forward(self, input, target):
 
-        bce_loss = nn.functional.binary_cross_entropy_with_logits(
-            input, target.float(), reduction="none"
-        )
+        losses = 0
+        for i in range(1, input.shape[1]):  # background is not included
 
-        pt = torch.exp(-bce_loss)
-        focal_loss = self.alpha * (1 - pt) ** self.gamma * bce_loss
+            ypr = input[:, i, :, :]
+            ygt = target[:, i, :, :]
 
-        hybrid_loss = torch.mean(focal_loss, 0).sum()
+            bce_loss = nn.functional.binary_cross_entropy_with_logits(
+                ypr, ygt.float(), reduction="none"
+            )
 
-        return hybrid_loss
+            pt = torch.exp(-bce_loss)
+            focal_loss = self.alpha * (1 - pt) ** self.gamma * bce_loss
+            losses += focal_loss.mean()
+        return losses
 
 # ---------------
 # --- MCCLoss ---
