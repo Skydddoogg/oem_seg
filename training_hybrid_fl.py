@@ -29,7 +29,7 @@ if __name__ == "__main__":
     N_CLASSES = 9
     LR = 0.001
     BATCH_SIZE = 4
-    NUM_EPOCHS = 200
+    NUM_EPOCHS = 150
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     OUTPUT_DIR = "outputs"
     os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -82,7 +82,7 @@ if __name__ == "__main__":
         shuffle=False,
     )
 
-    network = smp.UnetPlusPlus(
+    network = smp.Unet(
         encoder_name=BACKBONE,
         encoder_weights=PRETRAINED,
         in_channels=3,
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     )
 
     optimizer = torch.optim.Adam(network.parameters(), lr=LR)
-    criterion = oem.losses.JaccardLoss()
+    criterion = oem.losses.Hybrid(gamma=2, alpha=0.25)
 
     train_loss = []
     val_loss = []
