@@ -94,7 +94,7 @@ class Hybrid(nn.Module):
     def forward(self, input, target):
 
         losses = 0
-        for i in range(1, input.shape[1]):  # background is not included
+        for i in range(input.shape[1]):
 
             ypr = input[:, i, :, :]
             ygt = target[:, i, :, :]
@@ -148,6 +148,50 @@ class MCCLoss(nn.Module):
 
         return loss
 
+class HybridMCCLoss(nn.Module):
+    """
+    Compute Matthews Correlation Coefficient Loss for image segmentation
+    Reference: https://github.com/kakumarabhishek/MCC-Loss
+    """
+
+    def __init__(self, eps: float = 1e-5):
+        super().__init__()
+        self.eps = eps
+        self.name = "HybridMCC"
+
+    def forward(self, input, target):
+        losses = 0
+        for i in range(input.shape[1]):
+
+            ypr = input[:, i, :, :]
+            ygt = target[:, i, :, :]
+            
+            bs = ygt.shape[0]
+
+            ypr = torch.sigmoid(ypr)
+
+            ygt = ygt.view(bs, 1, -1)
+            ypr = ypr.view(bs, 1, -1)
+
+            tp = torch.sum(torch.mul(ypr, ygt)) + self.eps
+            tn = torch.sum(torch.mul((1 - ypr), (1 - ygt))) + self.eps
+            fp = torch.sum(torch.mul(ypr, (1 - ygt))) + self.eps
+            fn = torch.sum(torch.mul((1 - ypr), ygt)) + self.eps
+
+            numerator = torch.mul(tp, tn) - torch.mul(fp, fn)
+            denominator = torch.sqrt(
+                torch.add(tp, fp)
+                * torch.add(tp, fn)
+                * torch.add(tn, fp)
+                * torch.add(tn, fn)
+            )
+
+            mcc = torch.div(numerator.sum(), denominator.sum())
+            loss = 1.0 - mcc
+
+            losses += loss
+
+        return losses
 
 # ----------------
 # --- OHEMLoss ---
@@ -186,3 +230,46 @@ class OHEMBCELoss(nn.Module):
             )[: self.min_kept]
             kept_flag.contiguous().view(-1)[hardest_examples] = True
         return self.criterion(input[kept_flag, 0], target[kept_flag, 0])
+
+
+class HybridOHEMBCELoss(nn.Module):
+    """
+    Taken and modified from:
+    https://github.com/PkuRainBow/OCNet.pytorch/blob/master/utils/loss.py
+    """
+
+    def __init__(self, thresh=0.7, min_kept=10000):
+        super(HybridOHEMBCELoss, self).__init__()
+        self.thresh = float(thresh)
+        self.min_kept = int(min_kept)
+        self.criterion = torch.nn.BCEWithLogitsLoss()
+        self.name = "HybridOHEM"
+
+    def forward(self, input, target):
+        losses = 0
+        for i in range(1, input.shape[1]):
+
+            class_wise_input = input[:, [0, i], :, :]
+            class_wise_target = target[:, [0, i], :, :]
+
+            probs = torch.sigmoid(class_wise_input)[:, 0, :, :].float()
+            ygt = class_wise_target[:, 0, :, :].float()
+
+            # keep hard examples
+            kept_flag = torch.zeros_like(probs).bool()
+            # foreground pixels with low foreground probability
+            kept_flag[ygt == 1] = probs[ygt == 1] <= self.thresh
+            # background pixel with high foreground probability
+            kept_flag[ygt == 0] = probs[ygt == 0] >= 1 - self.thresh
+
+            if kept_flag.sum() < self.min_kept:
+                # hardest examples have a probability closest to 0.5.
+                # The network is very unsure whether they belong to the foreground
+                # prob=1 or background prob=0
+                hardest_examples = torch.argsort(
+                    torch.abs(probs - 0.5).contiguous().view(-1)
+                )[: self.min_kept]
+                kept_flag.contiguous().view(-1)[hardest_examples] = True
+            losses += self.criterion(class_wise_input[kept_flag, 0], class_wise_target[kept_flag, 0].float())
+        
+        return losses
