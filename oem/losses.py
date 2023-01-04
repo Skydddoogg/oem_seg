@@ -229,7 +229,7 @@ class OHEMBCELoss(nn.Module):
                 torch.abs(probs - 0.5).contiguous().view(-1)
             )[: self.min_kept]
             kept_flag.contiguous().view(-1)[hardest_examples] = True
-        return self.criterion(input[kept_flag, 0], target[kept_flag, 0])
+        return self.criterion(input[kept_flag, 0], target[kept_flag, 0].float())
 
 
 class HybridOHEMBCELoss(nn.Module):
