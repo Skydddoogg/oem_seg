@@ -231,6 +231,41 @@ class OHEMBCELoss(nn.Module):
             kept_flag.contiguous().view(-1)[hardest_examples] = True
         return self.criterion(input[kept_flag, 0], target[kept_flag, 0].float())
 
+class OHEMFLLoss(nn.Module):
+    """
+    Taken and modified from:
+    https://github.com/PkuRainBow/OCNet.pytorch/blob/master/utils/loss.py
+    """
+
+    def __init__(self, thresh=0.7, min_kept=10000):
+        super(OHEMFLLoss, self).__init__()
+        self.thresh = float(thresh)
+        self.min_kept = int(min_kept)
+        self.criterion = FocalLoss(gamma=2, alpha=0.25)
+        self.name = "OHEMFL"
+
+    def forward(self, input, target):
+
+        probs = torch.sigmoid(input)[:, 0, :, :].float()
+        ygt = target[:, 0, :, :].float()
+
+        # keep hard examples
+        kept_flag = torch.zeros_like(probs).bool()
+        # foreground pixels with low foreground probability
+        kept_flag[ygt == 1] = probs[ygt == 1] <= self.thresh
+        # background pixel with high foreground probability
+        kept_flag[ygt == 0] = probs[ygt == 0] >= 1 - self.thresh
+
+        if kept_flag.sum() < self.min_kept:
+            # hardest examples have a probability closest to 0.5.
+            # The network is very unsure whether they belong to the foreground
+            # prob=1 or background prob=0
+            hardest_examples = torch.argsort(
+                torch.abs(probs - 0.5).contiguous().view(-1)
+            )[: self.min_kept]
+            kept_flag.contiguous().view(-1)[hardest_examples] = True
+        return self.criterion(input[kept_flag, 0], target[kept_flag, 0].float())
+
 
 class HybridOHEMBCELoss(nn.Module):
     """
@@ -281,7 +316,7 @@ class HybridOHEMFLLoss(nn.Module):
     """
 
     def __init__(self, thresh=0.7, min_kept=10000):
-        super(HybridOHEMBCELoss, self).__init__()
+        super(HybridOHEMFLLoss, self).__init__()
         self.thresh = float(thresh)
         self.min_kept = int(min_kept)
         self.criterion = FocalLoss(gamma=2, alpha=0.25)
