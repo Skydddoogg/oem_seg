@@ -20,6 +20,36 @@ class JaccardLoss(nn.Module):
             losses += 1 - metrics.fscore(ypr, ygt)
         return losses
 
+class GroupedJaccardLoss(nn.Module):
+    def __init__(self, class_group, class_weights=1.0):
+        super().__init__()
+        self.class_weights = torch.tensor(class_weights)
+        self.name = "GroupedJaccard"
+        self.class_group = class_group
+
+    def forward(self, input, target):
+        input = torch.softmax(input, dim=1)
+
+        total_loss = 0
+
+        # calculate average loss of majority samples
+        losses = 0
+        for i in self.class_group['majority']:
+            ypr = input[:, i, :, :]
+            ygt = target[:, i, :, :]
+            losses += 1 - metrics.fscore(ypr, ygt)
+        total_loss += losses
+
+        # calculate average loss of minority samples
+        losses = 0
+        for i in self.class_group['minority'][1:]:  # background is not included
+            ypr = input[:, i, :, :]
+            ygt = target[:, i, :, :]
+            losses += 1 - metrics.fscore(ypr, ygt)
+        total_loss += losses
+
+        return total_loss
+
 
 # ----------------
 # --- DiceLoss ---
