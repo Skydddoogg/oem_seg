@@ -8,6 +8,7 @@ import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model')
+parser.add_argument('--title')
 
 args = parser.parse_args()
 
@@ -36,9 +37,10 @@ sns.lineplot(
         style="label"
 )
 
-plt.title(args.model) # Edit here
+if args.title is not None:
+    plt.title(f'{args.title}') # Edit here
 plt.xlabel('Epoch')
-plt.ylabel('Loss')
+plt.ylabel('Normalized loss')
 plt.grid()
 plt.legend()
 plt.tight_layout()
