@@ -168,7 +168,7 @@ class GroupedFocalLoss(nn.Module):
         total_loss += losses
 
         losses = 0
-        for i in self.class_group['minority'][1:]:  # background is not included
+        for i in self.class_group['minority']:  # background is not included
 
             ypr = input[:, i, :, :]
             ygt = target[:, i, :, :]
