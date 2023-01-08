@@ -113,13 +113,13 @@ class FocalLoss(nn.Module):
             focal_loss = focal_loss.sum()
         return focal_loss
 
-class Hybrid(nn.Module):
+class HybridFocalLoss(nn.Module):
     def __init__(self, alpha=1, gamma=2):
         super().__init__()
 
         self.alpha = alpha
         self.gamma = gamma
-        self.name = 'Hybrid'
+        self.name = 'HybridFocalLoss'
 
     def forward(self, input, target):
 
@@ -137,6 +137,52 @@ class Hybrid(nn.Module):
             focal_loss = self.alpha * (1 - pt) ** self.gamma * bce_loss
             losses += focal_loss.mean()
         return losses
+
+class GroupedFocalLoss(nn.Module):
+    def __init__(self, class_group, alpha=1, gamma=2):
+        super().__init__()
+
+        self.alpha = alpha
+        self.gamma = gamma
+        self.name = 'GroupedFocalLoss'
+
+        self.class_group = class_group
+
+    def forward(self, input, target):
+
+        total_loss = 0
+
+        losses = 0
+        for i in self.class_group['majority']:
+
+            ypr = input[:, i, :, :]
+            ygt = target[:, i, :, :]
+
+            bce_loss = nn.functional.binary_cross_entropy_with_logits(
+                ypr, ygt.float(), reduction="none"
+            )
+
+            pt = torch.exp(-bce_loss)
+            focal_loss = self.alpha * (1 - pt) ** self.gamma * bce_loss
+            losses += focal_loss.mean()
+        total_loss += losses
+
+        losses = 0
+        for i in self.class_group['minority'][1:]:  # background is not included
+
+            ypr = input[:, i, :, :]
+            ygt = target[:, i, :, :]
+
+            bce_loss = nn.functional.binary_cross_entropy_with_logits(
+                ypr, ygt.float(), reduction="none"
+            )
+
+            pt = torch.exp(-bce_loss)
+            focal_loss = self.alpha * (1 - pt) ** self.gamma * bce_loss
+            losses += focal_loss.mean()
+        total_loss += losses
+
+        return total_loss
 
 # ---------------
 # --- MCCLoss ---
