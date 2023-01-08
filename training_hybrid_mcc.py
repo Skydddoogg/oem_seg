@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
     start = time.time()
 
-    BACKBONE = 'resnet18'
+    BACKBONE = 'efficientnet-b4'
     PRETRAINED = 'imagenet'
 
     OEM_DATA_DIR = "OpenEarthMap_Mini"
@@ -27,8 +27,9 @@ if __name__ == "__main__":
 
     IMG_SIZE = 512
     N_CLASSES = 9
-    LR = 0.001
-    BATCH_SIZE = 4
+    LR = 0.0001
+    WD = 0.000001
+    BATCH_SIZE = 2
     NUM_EPOCHS = 150
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     OUTPUT_DIR = "outputs"
@@ -89,7 +90,7 @@ if __name__ == "__main__":
         classes=N_CLASSES,   
     )
 
-    optimizer = torch.optim.Adam(network.parameters(), lr=LR)
+    optimizer = torch.optim.Adam(network.parameters(), lr=LR, weight_decay=WD)
     criterion = oem.losses.HybridMCCLoss()
 
     train_loss = []
