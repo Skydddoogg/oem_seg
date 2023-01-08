@@ -95,7 +95,7 @@ if __name__ == "__main__":
         classes=N_CLASSES,   
     )
 
-    optimizer = torch.optim.Adam(network.parameters(), lr=LR, weight_decay=WD)
+    optimizer = torch.optim.AdamW(network.parameters(), lr=LR, weight_decay=WD)
     criterion = oem.losses.GroupedFocalLoss(class_group=CLASS_GROUP, gamma=2, alpha=0.25)
 
     train_loss = []
