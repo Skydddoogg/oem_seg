@@ -91,7 +91,7 @@ if __name__ == "__main__":
     )
 
     optimizer = torch.optim.AdamW(network.parameters(), lr=LR, weight_decay=WD)
-    criterion = oem.losses.Hybrid(gamma=2, alpha=0.25)
+    criterion = oem.losses.HybridFocalLoss(gamma=2, alpha=0.25)
 
     train_loss = []
     val_loss = []
