@@ -18,17 +18,23 @@ if __name__ == "__main__":
 
     start = time.time()
 
-    BACKBONE = 'resnet18'
+    BACKBONE = 'efficientnet-b4'
     PRETRAINED = 'imagenet'
 
     OEM_DATA_DIR = "OpenEarthMap_Mini"
     TRAIN_LIST = os.path.join(OEM_DATA_DIR, "train.txt")
     VAL_LIST = os.path.join(OEM_DATA_DIR, "val.txt")
 
+    CLASS_GROUP = {
+        'majority': [2, 3, 5, 8],
+        'minority': [0, 1, 4, 6, 7]
+    }
+
     IMG_SIZE = 512
     N_CLASSES = 9
-    LR = 0.001
-    BATCH_SIZE = 4
+    LR = 0.0001
+    WD = 0.000001
+    BATCH_SIZE = 2
     NUM_EPOCHS = 150
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     OUTPUT_DIR = "outputs"
@@ -89,8 +95,8 @@ if __name__ == "__main__":
         classes=N_CLASSES,   
     )
 
-    optimizer = torch.optim.Adam(network.parameters(), lr=LR)
-    criterion = oem.losses.HybridOHEMBCELoss()
+    optimizer = torch.optim.AdamW(network.parameters(), lr=LR, weight_decay=WD)
+    criterion = oem.losses.GroupedMCCLoss(class_group=CLASS_GROUP)
 
     train_loss = []
     val_loss = []

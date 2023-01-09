@@ -269,6 +269,90 @@ class HybridMCCLoss(nn.Module):
 
         return losses
 
+class GroupedMCCLoss(nn.Module):
+    """
+    Compute Matthews Correlation Coefficient Loss for image segmentation
+    Reference: https://github.com/kakumarabhishek/MCC-Loss
+    """
+
+    def __init__(self, class_group: dict, eps: float = 1e-5):
+        super().__init__()
+        self.eps = eps
+        self.name = "GroupedMCC"
+        self.class_group = class_group
+
+    def forward(self, input, target):
+
+        total_loss = 0
+
+        losses = 0
+        for i in range(self.class_group['majority']):
+
+            ypr = input[:, i, :, :]
+            ygt = target[:, i, :, :]
+            
+            bs = ygt.shape[0]
+
+            ypr = torch.sigmoid(ypr)
+
+            ygt = ygt.view(bs, 1, -1)
+            ypr = ypr.view(bs, 1, -1)
+
+            tp = torch.sum(torch.mul(ypr, ygt)) + self.eps
+            tn = torch.sum(torch.mul((1 - ypr), (1 - ygt))) + self.eps
+            fp = torch.sum(torch.mul(ypr, (1 - ygt))) + self.eps
+            fn = torch.sum(torch.mul((1 - ypr), ygt)) + self.eps
+
+            numerator = torch.mul(tp, tn) - torch.mul(fp, fn)
+            denominator = torch.sqrt(
+                torch.add(tp, fp)
+                * torch.add(tp, fn)
+                * torch.add(tn, fp)
+                * torch.add(tn, fn)
+            )
+
+            mcc = torch.div(numerator.sum(), denominator.sum())
+            loss = 1.0 - mcc
+
+            losses += loss
+
+        total_loss += losses
+
+        losses = 0
+        for i in range(self.class_group['minority']):
+
+            ypr = input[:, i, :, :]
+            ygt = target[:, i, :, :]
+            
+            bs = ygt.shape[0]
+
+            ypr = torch.sigmoid(ypr)
+
+            ygt = ygt.view(bs, 1, -1)
+            ypr = ypr.view(bs, 1, -1)
+
+            tp = torch.sum(torch.mul(ypr, ygt)) + self.eps
+            tn = torch.sum(torch.mul((1 - ypr), (1 - ygt))) + self.eps
+            fp = torch.sum(torch.mul(ypr, (1 - ygt))) + self.eps
+            fn = torch.sum(torch.mul((1 - ypr), ygt)) + self.eps
+
+            numerator = torch.mul(tp, tn) - torch.mul(fp, fn)
+            denominator = torch.sqrt(
+                torch.add(tp, fp)
+                * torch.add(tp, fn)
+                * torch.add(tn, fp)
+                * torch.add(tn, fn)
+            )
+
+            mcc = torch.div(numerator.sum(), denominator.sum())
+            loss = 1.0 - mcc
+
+            losses += loss
+
+        total_loss += losses
+
+        return total_loss
+
 # ----------------
 # --- OHEMLoss ---
 # ----------------

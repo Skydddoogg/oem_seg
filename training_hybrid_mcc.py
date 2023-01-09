@@ -90,7 +90,7 @@ if __name__ == "__main__":
         classes=N_CLASSES,   
     )
 
-    optimizer = torch.optim.Adam(network.parameters(), lr=LR, weight_decay=WD)
+    optimizer = torch.optim.AdamW(network.parameters(), lr=LR, weight_decay=WD)
     criterion = oem.losses.HybridMCCLoss()
 
     train_loss = []

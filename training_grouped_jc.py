@@ -35,7 +35,7 @@ if __name__ == "__main__":
     LR = 0.0001
     WD = 0.000001
     BATCH_SIZE = 2
-    NUM_EPOCHS = 500
+    NUM_EPOCHS = 150
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     OUTPUT_DIR = "outputs"
     os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -95,7 +95,7 @@ if __name__ == "__main__":
         classes=N_CLASSES,   
     )
 
-    optimizer = torch.optim.Adam(network.parameters(), lr=LR, weight_decay=WD)
+    optimizer = torch.optim.AdamW(network.parameters(), lr=LR, weight_decay=WD)
     criterion = oem.losses.GroupedJaccardLoss(class_group=CLASS_GROUP)
 
     train_loss = []
