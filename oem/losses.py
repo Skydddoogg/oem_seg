@@ -286,7 +286,7 @@ class GroupedMCCLoss(nn.Module):
         total_loss = 0
 
         losses = 0
-        for i in range(self.class_group['majority']):
+        for i in self.class_group['majority']:
 
             ypr = input[:, i, :, :]
             ygt = target[:, i, :, :]
@@ -319,7 +319,7 @@ class GroupedMCCLoss(nn.Module):
         total_loss += losses
 
         losses = 0
-        for i in range(self.class_group['minority']):
+        for i in self.class_group['minority']:
 
             ypr = input[:, i, :, :]
             ygt = target[:, i, :, :]
