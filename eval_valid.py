@@ -95,6 +95,6 @@ if __name__ == "__main__":
                 class_iou[c] += [iou]
 
     class_iou = torch.tensor(class_iou)
-    print(f'mIoU = {class_iou[1:].mean(axis=1).mean():.2f}')
+    print(f'mIoU = {class_iou[1:].mean(axis=1).mean() * 100:.2f}')
     for i,c in enumerate(CLASSES):
-        print(f'  - {c} = {class_iou[i].mean():.2f}')
+        print(f'  - {c} = {class_iou[i].mean() * 100:.2f}')
