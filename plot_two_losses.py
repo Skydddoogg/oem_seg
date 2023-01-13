@@ -61,13 +61,3 @@ g.map(sns.lineplot, 'epoch', 'normalized loss')
 g.add_legend()
 g.tight_layout()
 g.savefig(os.path.join('outputs', f'{args.model1}_vs_{args.model2}.png'), dpi=300)
-
-# if args.title is not None:
-#     plt.title(f'{args.title}') # Edit here
-# plt.xlabel('epoch')
-# plt.ylabel('Normalized loss')
-# plt.grid()
-# plt.legend()
-# plt.tight_layout()
-# plt.show()
-# plt.savefig(os.path.join('outputs', f'{args.model}.png'), dpi=300) # Edit here

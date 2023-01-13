@@ -26,7 +26,7 @@ with open(os.path.join('outputs', f'{args.model}_val_loss.txt')) as f:
     d['label'] += ['val'] * len(loss_list)
 
 d['y'] = np.array(d['y'])
-d['y'] = (d['y'] - min(d['y'])) / (max(d['y']) - min(d['y']))
+# d['y'] = (d['y'] - min(d['y'])) / (max(d['y']) - min(d['y']))
 
 df = pd.DataFrame(data=d)
 
@@ -40,7 +40,7 @@ sns.lineplot(
 if args.title is not None:
     plt.title(f'{args.title}') # Edit here
 plt.xlabel('Epoch')
-plt.ylabel('Normalized loss')
+plt.ylabel('Loss')
 plt.grid()
 plt.legend()
 plt.tight_layout()
